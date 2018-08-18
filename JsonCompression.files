@@ -1,4 +1,17 @@
+unitTest/TEST_JSON/TEST_JSON_CODER_DECODER/TEST_JSON_CODER_DECODER.c
+src/system/system.c
+src/system/error.c
+src/json/json_compress.c
+JsonCompression/JsonCompression.c
 JsonCompression/JsonCompression.c
 JsonCompression/JsonCompression.h
+JsonCompression/JsonCompression.h
+include/buffer/buffer_alloc.h
 include/json/json_compress.h
+include/json/json_compress.h
+include/system/config.h
+include/system/debug.h
+include/system/error.h
+include/system/system.h
+src/buffer/buffer_alloc.c
 src/json/json_compress.c

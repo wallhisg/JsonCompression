@@ -14,7 +14,7 @@ Name=GCC
 1=/home/wall/Dropbox/projects/JsonCompression/JsonCompression/include
 
 [Filters]
-size=37
+size=39
 
 [Filters][0]
 inclusive=0
@@ -171,6 +171,16 @@ inclusive=0
 pattern=*.includes
 targets=3
 
+[Filters][37]
+inclusive=0
+pattern=*.user
+targets=3
+
+[Filters][38]
+inclusive=0
+pattern=TEST_JSON_CODER_DECODER_EXE
+targets=3
+
 [Filters][4]
 inclusive=0
 pattern=CVS
@@ -202,12 +212,12 @@ pattern=.hg
 targets=2
 
 [Launch]
-Launch Configurations=Launch Configuration 0
+Launch Configurations=Launch Configuration 0,Launch Configuration 1
 
 [Launch][Launch Configuration 0]
 Configured Launch Modes=execute
 Configured Launchers=nativeAppLauncher
-Name=New Compiled Binary Launcher
+Name=run
 Type=Native Application
 
 [Launch][Launch Configuration 0][Data]
@@ -217,6 +227,24 @@ Dependency Action=Nothing
 EnvironmentGroup=
 Executable=file:///home/wall/Dropbox/projects/JsonCompression/JsonCompression
 External Terminal=make run
+Project Target=
+Use External Terminal=true
+Working Directory=file:///home/wall/Dropbox/projects/JsonCompression/JsonCompression
+isExecutable=true
+
+[Launch][Launch Configuration 1]
+Configured Launch Modes=execute
+Configured Launchers=nativeAppLauncher
+Name=TEST_JSON_CODER_DECODER_BLOCK
+Type=Native Application
+
+[Launch][Launch Configuration 1][Data]
+Arguments=
+Dependencies=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x00)
+Dependency Action=Nothing
+EnvironmentGroup=
+Executable=file:///home/wall/Dropbox/projects/JsonCompression/JsonCompression
+External Terminal=make TEST_JSON_CODER_DECODER_EXE\s
 Project Target=
 Use External Terminal=true
 Working Directory=file:///home/wall/Dropbox/projects/JsonCompression/JsonCompression

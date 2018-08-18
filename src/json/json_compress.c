@@ -1,49 +1,124 @@
 #include <json/json_compress.h>
+#include <buffer/buffer_alloc.h>
 
+void coder_block(void *compressAdd, void *codedAdd);
+void decoder_block(void *decompressAdd, void *compressedAdd);
 
+char get_ascii_coder(char c);
+char get_ascii_decoder(char c);
 
-//bool json_compress_grammar()
-//{
-
-//}
-
-//bool json_decompress_grammar()
-//{
-
-//}
-
-
-//bool json_compress_ascii()
-//{
-//    bool flag = false;
+char *json_compress_ascii(char* rawStr)
+{
+    // coder
+    int len = strlen(rawStr);
+    char *codedStr = (char*)buffer_malloc(len * sizeof(char));
     
-//    return flag;
-//}
-
-//bool json_decompress_ascii()
-//{
-//    bool flag = false;
+    int i = 0, j = 0;
+    for(i = 0; i < len; ++i)
+    {
+        codedStr[i] = get_ascii_coder(rawStr[i]);
+    }
+    // Compress ascii code
+    int compressSize = len * 3 / 4 + 2;
+    char *asciiCom= (char*)buffer_malloc(compressSize * sizeof(char));
     
-//    return flag;
-//}
+    for(i = 0, j = 0; i < len; )
+    {
+        coder_block(&asciiCom[j], &codedStr[i]);
+        i = i + 4;
+        j = j + 3;
+    }
 
-uint8_t json_ascii_coder(char c)
+    buffer_free(codedStr);
+    
+    return asciiCom;
+}
+
+char * json_decompress_ascii(char* codedStr)
+{
+    // decompress ascii code
+    int len = strlen(codedStr);
+    int lenAlign = len * 4 / 3 + 1;
+    char *asciiDecom = (char*)buffer_malloc(lenAlign * sizeof(char));
+    memset(asciiDecom, 0, lenAlign);
+
+    int i = 0, j = 0;
+    for(i = 0, j = 0; i < len;)
+    {
+        decoder_block(&asciiDecom[j], &codedStr[i]);
+        i = i + 3;
+        j = j + 4;
+    }
+    char *strDecoded = (char*)buffer_malloc(len * sizeof(char));
+    memset(strDecoded, 0, len);
+
+    len = strlen(asciiDecom);
+    for(i = 0; i < len; ++i)
+    {
+        strDecoded[i] = get_ascii_decoder(asciiDecom[i]);
+    }
+
+    buffer_free(asciiDecom);
+
+    return strDecoded;
+}
+
+void coder_block(void *compressAdd, void *codedAdd)
+{
+    CodeBlock *des = compressAdd;
+    CodeBlock *src = codedAdd;
+
+    // byte 3
+    des->byte3 = src->byte3 << 2;
+    des->byte3 |= src->byte2 >> 4;
+    // byte 2
+    des->byte2 = src->byte2 << 4;
+    des->byte2 |= src->byte1 >> 2;
+    // byte 1
+    des->byte1 = src->byte1 << 6;
+    des->byte1 |= src->byte0;
+}
+
+void decoder_block(void *decompressAdd, void *compressedAdd)
+{
+    CodeBlock *des = decompressAdd;
+    CodeBlock *src = compressedAdd;
+
+    // byte 0
+    des->byte0 = src->byte1 & 0b00111111;
+    // byte 1
+    des->byte1 = src->byte1 >> 6;
+    des->byte1 &= 0b00000011;
+    des->byte1 |= src->byte2 << 2;
+    des->byte1 &= 0b00111111;
+    // byte 2
+    des->byte2 = src->byte2 >> 4;
+    des->byte2 &= 0b00001111;
+    des->byte2 |= src->byte3 << 4;
+    des->byte2 &= 0b00111111;
+    // byte 3
+    des->byte3 = src->byte3 >> 2;
+    des->byte3 &= 0b00111111;
+}
+
+char get_ascii_coder(char c)
 {
     uint8_t result;
-    
+
     switch(c)
     {
         // End string
-        case '\0':  result = '\0';  break;  // NULL
-        case '\n':  result = 10;    break;  // LF
-        case '\r':  result = 13;    break;  // CR
+        case '\0':  /*result = '\0';  break;  // NULL*/
+        case '\n':  /*result = 10;    break;  // LF*/
+        case '\r':  /*result = 13;    break;  // CR*/
+        result = 10;    break;  // LF
         // Token
         case '\"':  result = 4;     break;      case ',':   result = 5;     break;
         case ':':   result = 6;     break;      case ';':   result = 7;     break;
         case '[':   result = 8;     break;      case ']':   result = 9;     break;
         case '{':   result = 1;     break;      case '}':   result = 11;    break;
         // Number
-        case '0':   result = 12;    break;      case '1':   result = 2;    break;
+        case '0':   result = 12;    break;      case '1':   result = 2;     break;
         case '2':   result = 14;    break;      case '3':   result = 15;    break;
         case '4':   result = 16;    break;      case '5':   result = 17;    break;
         case '6':   result = 18;    break;      case '7':   result = 19;    break;
@@ -66,20 +141,21 @@ uint8_t json_ascii_coder(char c)
             result = '\0';
             break;
     }
-    
+
     return result;
 }
 
-char json_ascii_decoder(uint8_t c)
+char get_ascii_decoder(char c)
 {
     char result;
 
     switch(c)
     {
         // End string
-        case '\0':  result = '\0';  break;  // NULL
-        case 10:    result = '\n';  break;  // LF
-        case 13:    result = '\r';  break;  // CR
+        case '\0':  /*result = '\0';  break;  // NULL*/
+        case 10:    /*result = '\n';  break;  // LF*/
+        case 13:    /*result = '\r';  break;  // CR*/
+        result = '\0';  break;  // NULL
         // Token
         case 4:     result = '\"';  break;      case 5:     result = ',';   break;
         case 6:     result = ':';   break;      case 7:     result = ';';   break;
@@ -113,102 +189,4 @@ char json_ascii_decoder(uint8_t c)
     return result;
 }
 
-void *coder_block(void *head, void *cursor, int idx)
-{
-    ByteBlock *head_ = head;
-    ByteBlock *cursor_ = cursor;
-    ByteBlock *byteNext = cursor;
-    byteNext++;
 
-    switch (idx % 4) {
-        case 0:
-        {
-            head_->block4 = cursor_->block3;
-            head_->block3 = cursor_->block2;
-            head_->block2 = cursor_->block1;
-            head_->block1 = byteNext->block3;
-            head_++;
-            break;
-        }
-        case 1:
-        {
-            head_->block4 = cursor_->block2;
-            head_->block3 = cursor_->block1;
-            head_->block2 = byteNext->block3;
-            head_->block1 = byteNext->block2;
-            head_++;
-            break;
-        }
-        case 2:
-        {
-            head_->block4 = cursor_->block1;
-            head_->block3 = byteNext->block3;
-            head_->block2 = byteNext->block2;
-            head_->block1 = byteNext->block1;
-            head_++;
-            break;
-        }
-        case 3:
-            head_ = head;
-            break;
-        default:
-            head_ = head;
-            break;
-    }
-
-    return head_;
-}
-
-void *decoder_block(void *head, void *cursor, int idx)
-{
-    ByteBlock *head_ = head + ((idx * 4) / 3);
-    ByteBlock *headNext = head_;
-
-    ByteBlock *cursor_ = cursor;
-    ByteBlock *bytePrev = cursor;
-    ByteBlock *byteNext = cursor;
-    
-    if(cursor != head)
-    {
-        bytePrev--;
-        byteNext++;
-        headNext++;
-    }
-
-    switch ((idx * 4) % 3) {
-        case 0: // byte 0
-        {
-            head_->block4 = 0;
-            head_->block3 = cursor_->block4;
-            head_->block2 = cursor_->block3;
-            head_->block1 = cursor_->block2;
-            break;
-        }
-        case 1: // byte 1
-        {
-            head_->block4 = 0;
-            head_->block3 = bytePrev->block1;
-            head_->block2 = cursor_->block4;
-            head_->block1 = cursor_->block3;
-            break;
-        }
-        case 2: // byte 2, 3
-        {
-            head_->block4 = 0;
-            head_->block3 = bytePrev->block2;
-            head_->block2 = bytePrev->block1;
-            head_->block1 = cursor_->block4;
-
-            headNext->block4 = 0;
-            headNext->block3 = cursor_->block3;
-            headNext->block2 = cursor_->block2;
-            headNext->block1 = cursor_->block1;
-            break;
-        }
-        default:
-            head_ = head;
-            break;
-    }
-
-    return head_;
-}

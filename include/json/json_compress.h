@@ -5,23 +5,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-
 typedef struct {
-    uint8_t block1 : 2; // LSB
-    uint8_t block2 : 2;
-    uint8_t block3 : 2;
-    uint8_t block4 : 2; // MSB
-} ByteBlock;
+    char byte3;
+    char byte2;
+    char byte1;
+    char byte0;
+} CodeBlock;
 
-void *coder_block(void *head, void *cursor, int idx);
-void *decoder_block(void *head, void *cursor, int idx);
-//bool json_compress_grammar();
-//bool json_decompress_grammar();
+char *json_compress_ascii(char *rawStr);
+char *json_decompress_ascii(char *codedStr);
 
-//bool json_compress_ascii();
-//bool json_decompress_ascii();
 
-uint8_t json_ascii_coder(char c);
-char json_ascii_decoder(uint8_t c);
 
 #endif  //  JSON_COMPRESSION_H
